@@ -26,14 +26,16 @@ class PostsController {
       });
   }
 
-  getPostById = (request: express.Request, response: express.Response) => {
+  getPostById = (request: express.Request, response: express.Response, next) => {
     const id = request.params.id;
     postModel.findById(id)
       .then(post => {
-        if (post)
+        if (post) {
           response.send(post);
-        else
-          response.send(404);
+        } else {
+          next('Post not found');
+          // response.status(404).send({ error: 'Post not found' });
+        }
       });
   }
 
