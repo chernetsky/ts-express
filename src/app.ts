@@ -29,11 +29,22 @@ class App {
     const {
       MONGO_USER,
       MONGO_PASSWORD,
-      MONGO_PATH,
-      PORT
+      MONGO_PATH
     } = process.env;
 
-    mongoose.connect(`mongodb+srv://${MONGO_USER}:${MONGO_PASSWORD}${MONGO_PATH}`, { useNewUrlParser: true, useUnifiedTopology: true });
+    mongoose.connect(`mongodb+srv://${MONGO_USER}:${MONGO_PASSWORD}${MONGO_PATH}`,
+      {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+        useFindAndModify: false
+      });
+
+    const db = mongoose.connection;
+    db.on('error', console.error.bind(console, 'connection error:'));
+    db.once('open', function () {
+      // we're connected!
+      console.log('db connected');
+    });
   }
 
   public listen() {
