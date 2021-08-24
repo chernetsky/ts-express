@@ -1,4 +1,6 @@
 import PostNotFoundException from "../exceptions/PostNotFoundException"
+import validationMiddleware from '../middleware/validation.middleware';
+import CreatePostDto from './post.dto';
 import { NextFunction, Request, Response, Router } from "express"
 import Post from './post.interface';
 import postModel from './posts.model';
@@ -14,8 +16,8 @@ class PostsController {
   public initializeRoutes() {
     this.router.get(this.path, this.getAllPosts);
     this.router.get(`${this.path}/:id`, this.getPostById);
-    this.router.post(this.path, this.createPost);
-    this.router.patch(`${this.path}/:id`, this.modifyPost);
+    this.router.post(this.path, validationMiddleware(CreatePostDto), this.createPost);
+    this.router.patch(`${this.path}/:id`, validationMiddleware(CreatePostDto, true), this.modifyPost);
     this.router.delete(`${this.path}/:id`, this.deletePost);
   }
 
