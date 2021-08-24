@@ -1,5 +1,5 @@
 import {
-  cleanEnv, str, port
+  cleanEnv, str, port,
 } from 'envalid';
 
 export default function validateEnv() {
@@ -8,5 +8,5 @@ export default function validateEnv() {
     MONGO_PATH: str(),
     MONGO_USER: str(),
     PORT: port(),
-  })
+  });
 }

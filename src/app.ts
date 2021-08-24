@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import * as express from 'express';
 import * as bodyParser from 'body-parser';
 import * as mongoose from 'mongoose';
@@ -6,6 +7,7 @@ import errorMiddleware from './middleware/error.middleware';
 
 class App {
   public app: express.Application;
+
   public port: number;
 
   constructor(controllers: Controller[]) {
@@ -15,7 +17,6 @@ class App {
     this.initializeMiddlewares();
     this.initializeControllers(controllers);
     this.initializeErrorHandling();
-
   }
 
   private initializeMiddlewares() {
@@ -23,8 +24,8 @@ class App {
   }
 
   private initializeControllers(controllers: Controller[]) {
-    controllers.forEach(controller => {
-      this.app.use('/', controller.router)
+    controllers.forEach((controller) => {
+      this.app.use('/', controller.router);
     });
   }
 
@@ -32,23 +33,24 @@ class App {
     this.app.use(errorMiddleware);
   }
 
+  // eslint-disable-next-line class-methods-use-this
   private connectToTheDatabase() {
     const {
       MONGO_USER,
       MONGO_PASSWORD,
-      MONGO_PATH
+      MONGO_PATH,
     } = process.env;
 
     mongoose.connect(`mongodb+srv://${MONGO_USER}:${MONGO_PASSWORD}${MONGO_PATH}`,
       {
         useNewUrlParser: true,
         useUnifiedTopology: true,
-        useFindAndModify: false
+        useFindAndModify: false,
       });
 
     const db = mongoose.connection;
     db.on('error', console.error.bind(console, 'connection error:'));
-    db.once('open', function () {
+    db.once('open', () => {
       // we're connected!
       console.log('db connected');
     });
@@ -57,7 +59,7 @@ class App {
   public listen() {
     this.app.listen(process.env.PORT, () => {
       console.log(`App listening on the port ${process.env.PORT}`);
-    })
+    });
   }
 }
 

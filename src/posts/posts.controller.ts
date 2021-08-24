@@ -1,12 +1,15 @@
-import PostNotFoundException from "../exceptions/PostNotFoundException"
+import {
+  NextFunction, Request, Response, Router,
+} from 'express';
+import PostNotFoundException from '../exceptions/PostNotFoundException';
 import validationMiddleware from '../middleware/validation.middleware';
 import CreatePostDto from './post.dto';
-import { NextFunction, Request, Response, Router } from "express"
 import Post from './post.interface';
-import postModel from './posts.model';
+import PostModel from './posts.model';
 
 class PostsController {
   public path = '/posts';
+
   public router = Router();
 
   constructor() {
@@ -22,16 +25,16 @@ class PostsController {
   }
 
   getAllPosts = (request: Request, response: Response) => {
-    postModel.find()
-      .then(posts => {
+    PostModel.find()
+      .then((posts) => {
         response.send(posts);
       });
   }
 
   getPostById = (request: Request, response: Response, next: NextFunction) => {
-    const id = request.params.id;
-    postModel.findById(id)
-      .then(post => {
+    const { id } = request.params;
+    PostModel.findById(id)
+      .then((post) => {
         if (post) {
           response.send(post);
         } else {
@@ -42,19 +45,19 @@ class PostsController {
 
   createPost = (request: Request, response: Response) => {
     const postData: Post = request.body;
-    const createdPost = new postModel(postData);
+    const createdPost = new PostModel(postData);
 
     createdPost.save()
-      .then(savedPost => {
+      .then((savedPost) => {
         response.send(savedPost);
       });
   }
 
   modifyPost = (request: Request, response: Response, next: NextFunction) => {
-    const id = request.params.id;
+    const { id } = request.params;
     const postData: Post = request.body;
-    postModel.findByIdAndUpdate(id, postData, { new: true })
-      .then(post => {
+    PostModel.findByIdAndUpdate(id, postData, { new: true })
+      .then((post) => {
         if (post) {
           response.send(post);
         } else {
@@ -64,15 +67,15 @@ class PostsController {
   }
 
   deletePost = (request: Request, response: Response, next: NextFunction) => {
-    const id = request.params.id;
-    postModel.findByIdAndDelete(id)
-      .then(successResponse => {
+    const { id } = request.params;
+    PostModel.findByIdAndDelete(id)
+      .then((successResponse) => {
         if (successResponse) {
           response.send(200);
         } else {
           next(new PostNotFoundException(id));
         }
-      })
+      });
   }
 }
 

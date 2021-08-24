@@ -3,6 +3,7 @@ import { validate, ValidationError } from 'class-validator';
 import * as express from 'express';
 import HttpException from '../exceptions/HttpException';
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function validationMiddleware<T>(type: any, skipMissingProperties = false): express.RequestHandler {
   return (req, res, next) => {
     validate(plainToClass(type, req.body), { skipMissingProperties, forbidUnknownValues: true })
