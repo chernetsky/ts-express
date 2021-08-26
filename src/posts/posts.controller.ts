@@ -1,6 +1,8 @@
 import {
   NextFunction, Request, Response, Router,
 } from 'express';
+import RequestWithUser from '../interfaces/requestWithUser.interface';
+import authMiddleware from '../middleware/auth.middleware';
 import PostNotFoundException from '../exceptions/PostNotFoundException';
 import validationMiddleware from '../middleware/validation.middleware';
 import CreatePostDto from './post.dto';
@@ -12,6 +14,8 @@ class PostsController {
 
   public router = Router();
 
+  private post = PostModel;
+
   constructor() {
     this.initializeRoutes();
   }
@@ -19,63 +23,63 @@ class PostsController {
   public initializeRoutes() {
     this.router.get(this.path, this.getAllPosts);
     this.router.get(`${this.path}/:id`, this.getPostById);
-    this.router.post(this.path, validationMiddleware(CreatePostDto), this.createPost);
-    this.router.patch(`${this.path}/:id`, validationMiddleware(CreatePostDto, true), this.modifyPost);
-    this.router.delete(`${this.path}/:id`, this.deletePost);
+    this.router
+      .all(`${this.path}/*`, authMiddleware)
+      .patch(`${this.path}/:id`, validationMiddleware(CreatePostDto, true), this.modifyPost)
+      .delete(`${this.path}/:id`, this.deletePost)
+      .post(this.path, authMiddleware, validationMiddleware(CreatePostDto), this.createPost);
   }
 
-  getAllPosts = (request: Request, response: Response) => {
-    PostModel.find()
-      .then((posts) => {
-        response.send(posts);
-      });
+  getAllPosts = async (request: Request, response: Response) => {
+    const posts = await this.post.find();
+
+    response.send(posts);
   }
 
-  getPostById = (request: Request, response: Response, next: NextFunction) => {
+  getPostById = async (request: Request, response: Response, next: NextFunction) => {
     const { id } = request.params;
-    PostModel.findById(id)
-      .then((post) => {
-        if (post) {
-          response.send(post);
-        } else {
-          next(new PostNotFoundException(id));
-        }
-      });
+    const post = await this.post.findById(id);
+
+    if (post) {
+      response.send(post);
+    } else {
+      next(new PostNotFoundException(id));
+    }
   }
 
-  createPost = (request: Request, response: Response) => {
+  createPost = async (request: RequestWithUser, response: Response) => {
     const postData: Post = request.body;
-    const createdPost = new PostModel(postData);
+    const createdPost = new this.post({
+      ...postData,
+      authorId: request.user._id,
+    });
 
-    createdPost.save()
-      .then((savedPost) => {
-        response.send(savedPost);
-      });
+    const savedPost = await createdPost.save();
+
+    response.send(savedPost);
   }
 
-  modifyPost = (request: Request, response: Response, next: NextFunction) => {
+  modifyPost = async (request: Request, response: Response, next: NextFunction) => {
     const { id } = request.params;
     const postData: Post = request.body;
-    PostModel.findByIdAndUpdate(id, postData, { new: true })
-      .then((post) => {
-        if (post) {
-          response.send(post);
-        } else {
-          next(new PostNotFoundException(id));
-        }
-      });
+    const post = await this.post.findByIdAndUpdate(id, postData, { new: true });
+
+    if (post) {
+      response.send(post);
+    } else {
+      next(new PostNotFoundException(id));
+    }
   }
 
-  deletePost = (request: Request, response: Response, next: NextFunction) => {
+  deletePost = async (request: Request, response: Response, next: NextFunction) => {
     const { id } = request.params;
-    PostModel.findByIdAndDelete(id)
-      .then((successResponse) => {
-        if (successResponse) {
-          response.send(200);
-        } else {
-          next(new PostNotFoundException(id));
-        }
-      });
+    const deleteResult = await this.post.findByIdAndDelete(id);
+
+    if (deleteResult) {
+      response.send(200);
+    } else {
+      next(new PostNotFoundException(id));
+    }
   }
 }
 
