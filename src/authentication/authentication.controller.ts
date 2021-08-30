@@ -6,7 +6,7 @@ import TokenData from 'interfaces/tokenData.interface';
 import DataStoredInToken from 'interfaces/dataStoredInToken.interface';
 import UserEmailAlreadyExistsException from '../exceptions/UserEmailAlreadyExistsException';
 import WrongCredentialsException from '../exceptions/WrongCredentialsException';
-import Controller from '../interfaces/controlles.interface';
+import Controller from '../interfaces/controller.interface';
 import validationMiddleware from '../middleware/validation.middleware';
 import LogInDto from './logIn.dto';
 import CreateUserDto from '../users/user.dto';

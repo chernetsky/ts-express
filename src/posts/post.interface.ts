@@ -1,5 +1,5 @@
 interface Post {
-  authorId: string,
+  // authorId: string,
   content: string,
   title: string
 }

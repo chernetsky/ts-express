@@ -3,7 +3,7 @@ import * as express from 'express';
 import * as bodyParser from 'body-parser';
 import * as cookieParser from 'cookie-parser';
 import * as mongoose from 'mongoose';
-import Controller from './interfaces/controlles.interface';
+import Controller from './interfaces/controller.interface';
 import errorMiddleware from './middleware/error.middleware';
 
 class App {

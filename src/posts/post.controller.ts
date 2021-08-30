@@ -7,7 +7,7 @@ import PostNotFoundException from '../exceptions/PostNotFoundException';
 import validationMiddleware from '../middleware/validation.middleware';
 import CreatePostDto from './post.dto';
 import Post from './post.interface';
-import PostModel from './posts.model';
+import PostModel from './post.model';
 
 class PostsController {
   public path = '/posts';
@@ -31,7 +31,8 @@ class PostsController {
   }
 
   getAllPosts = async (request: Request, response: Response) => {
-    const posts = await this.post.find();
+    const posts = await this.post.find()
+      .populate('author', '-password');
 
     response.send(posts);
   }
@@ -51,11 +52,11 @@ class PostsController {
     const postData: Post = request.body;
     const createdPost = new this.post({
       ...postData,
-      authorId: request.user._id,
+      author: request.user._id,
     });
 
     const savedPost = await createdPost.save();
-
+    await savedPost.populate('author', '-password').execPopulate();
     response.send(savedPost);
   }
 
