@@ -14,8 +14,16 @@ function validationMiddleware<T>(type: any, skipMissingProperties = false): expr
         } else {
           next();
         }
-      });
+      }).catch((err) => next(new HttpException(500, err.message)));
   };
+}
+
+function processErrors(errors: ValidationError[]) {
+  const messages: string[] = [];
+
+  if (errors.length > 0) {
+    const message = errors.map((error: ValidationError) => Object.values(error.constraints)).join(', ');
+  }
 }
 
 export default validationMiddleware;

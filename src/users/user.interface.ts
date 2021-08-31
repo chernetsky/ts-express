@@ -4,8 +4,9 @@ interface User {
   email: string,
   password: string,
   address?: {
+    country: string,
+    city: string,
     street: string,
-    city: string
   }
 }
 
