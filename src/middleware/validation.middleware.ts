@@ -3,27 +3,34 @@ import { validate, ValidationError } from 'class-validator';
 import * as express from 'express';
 import HttpException from '../exceptions/HttpException';
 
+function processErrors(errors: ValidationError[]): string {
+  let result = [];
+  errors.forEach((error: ValidationError) => {
+    console.trace(error);
+    if (error?.children.length) {
+      result = result.concat(processErrors(error.children));
+    } else {
+      result = result.concat(Object.values(error.constraints));
+    }
+  });
+
+  return result.join('; ');
+}
+
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function validationMiddleware<T>(type: any, skipMissingProperties = false): express.RequestHandler {
   return (req, res, next) => {
-    validate(plainToClass(type, req.body), { skipMissingProperties, forbidUnknownValues: true })
+    validate(plainToClass(type, req.body), { skipMissingProperties })
       .then((errors: ValidationError[]) => {
+        // console.trace(errors);
         if (errors.length > 0) {
-          const message = errors.map((error: ValidationError) => Object.values(error.constraints)).join(', ');
+          const message = processErrors(errors);
           next(new HttpException(400, message));
         } else {
           next();
         }
       }).catch((err) => next(new HttpException(500, err.message)));
   };
-}
-
-function processErrors(errors: ValidationError[]) {
-  const messages: string[] = [];
-
-  if (errors.length > 0) {
-    const message = errors.map((error: ValidationError) => Object.values(error.constraints)).join(', ');
-  }
 }
 
 export default validationMiddleware;
