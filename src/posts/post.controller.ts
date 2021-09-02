@@ -1,20 +1,20 @@
 import {
   NextFunction, Request, Response, Router,
 } from 'express';
+import { getRepository } from 'typeorm';
 import RequestWithUser from '../interfaces/requestWithUser.interface';
 import authMiddleware from '../middleware/auth.middleware';
 import PostNotFoundException from '../exceptions/PostNotFoundException';
 import validationMiddleware from '../middleware/validation.middleware';
 import CreatePostDto from './post.dto';
-import Post from './post.interface';
-import PostModel from './post.model';
+import Post from './post.entity';
 
 class PostsController {
   public path = '/posts';
 
   public router = Router();
 
-  private post = PostModel;
+  private postRepository = getRepository(Post);
 
   constructor() {
     this.initializeRoutes();
@@ -30,16 +30,26 @@ class PostsController {
       .post(this.path, authMiddleware, validationMiddleware(CreatePostDto), this.createPost);
   }
 
-  getAllPosts = async (request: Request, response: Response) => {
-    const posts = await this.post.find()
-      .populate('author', '-password');
+  createPost = async (request: RequestWithUser, response: Response) => {
+    const postData: CreatePostDto = request.body;
+    const newPost = this.postRepository.create({
+      ...postData,
+      // author: request.user,
+    });
 
+    await this.postRepository.save(newPost);
+    // newPost.author = undefined;
+    response.send(newPost);
+  }
+
+  getAllPosts = async (request: Request, response: Response) => {
+    const posts = await this.postRepository.find();
     response.send(posts);
   }
 
   getPostById = async (request: Request, response: Response, next: NextFunction) => {
     const { id } = request.params;
-    const post = await this.post.findById(id);
+    const post = await this.postRepository.findOne(id);
 
     if (post) {
       response.send(post);
@@ -48,25 +58,14 @@ class PostsController {
     }
   }
 
-  createPost = async (request: RequestWithUser, response: Response) => {
-    const postData: Post = request.body;
-    const createdPost = new this.post({
-      ...postData,
-      author: request.user._id,
-    });
-
-    const savedPost = await createdPost.save();
-    await savedPost.populate('author', '-password').execPopulate();
-    response.send(savedPost);
-  }
-
   modifyPost = async (request: Request, response: Response, next: NextFunction) => {
     const { id } = request.params;
     const postData: Post = request.body;
-    const post = await this.post.findByIdAndUpdate(id, postData, { new: true });
+    await this.postRepository.update(id, postData);
+    const updatedPost = await this.postRepository.findOne(id);
 
-    if (post) {
-      response.send(post);
+    if (updatedPost) {
+      response.send(updatedPost);
     } else {
       next(new PostNotFoundException(id));
     }
@@ -74,9 +73,9 @@ class PostsController {
 
   deletePost = async (request: Request, response: Response, next: NextFunction) => {
     const { id } = request.params;
-    const deleteResult = await this.post.findByIdAndDelete(id);
+    const deleteResponse = await this.postRepository.delete(id);
 
-    if (deleteResult) {
+    if (deleteResponse[1]) {
       response.send(200);
     } else {
       next(new PostNotFoundException(id));

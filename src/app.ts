@@ -2,7 +2,6 @@
 import * as express from 'express';
 import * as bodyParser from 'body-parser';
 import * as cookieParser from 'cookie-parser';
-import * as mongoose from 'mongoose';
 import Controller from './interfaces/controller.interface';
 import errorMiddleware from './middleware/error.middleware';
 
@@ -14,7 +13,6 @@ class App {
   constructor(controllers: Controller[]) {
     this.app = express();
 
-    this.connectToTheDatabase();
     this.initializeMiddlewares();
     this.initializeControllers(controllers);
     this.initializeErrorHandling();
@@ -33,29 +31,6 @@ class App {
 
   private initializeErrorHandling() {
     this.app.use(errorMiddleware);
-  }
-
-  // eslint-disable-next-line class-methods-use-this
-  private connectToTheDatabase() {
-    const {
-      MONGO_USER,
-      MONGO_PASSWORD,
-      MONGO_PATH,
-    } = process.env;
-
-    mongoose.connect(`mongodb+srv://${MONGO_USER}:${MONGO_PASSWORD}${MONGO_PATH}`,
-      {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-        useFindAndModify: false,
-      });
-
-    const db = mongoose.connection;
-    db.on('error', console.error.bind(console, 'connection error:'));
-    db.once('open', () => {
-      // we're connected!
-      console.log('db connected');
-    });
   }
 
   public listen() {
