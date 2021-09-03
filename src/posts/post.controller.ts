@@ -34,11 +34,10 @@ class PostsController {
     const postData: CreatePostDto = request.body;
     const newPost = this.postRepository.create({
       ...postData,
-      // author: request.user,
+      author: request.user,
     });
 
     await this.postRepository.save(newPost);
-    // newPost.author = undefined;
     response.send(newPost);
   }
 
