@@ -6,7 +6,7 @@ import HttpException from '../exceptions/HttpException';
 function processErrors(errors: ValidationError[]): string {
   let result = [];
   errors.forEach((error: ValidationError) => {
-    if (error?.children.length) {
+    if (error?.children?.length) {
       result = result.concat(processErrors(error.children));
     } else {
       result = result.concat(Object.values(error.constraints));

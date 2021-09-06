@@ -5,7 +5,7 @@ import config from './ormconfig';
 import App from './app';
 import PostController from './posts/post.controller';
 import AuthenticationController from './authentication/authentication.controller';
-import ReportController from './report/report.controller';
+// import ReportController from './report/report.controller';
 import CategoryController from './category/category.controller';
 import validateEnv from './utils/validateEnv';
 
@@ -21,7 +21,7 @@ validateEnv();
   const app = new App([
     new PostController(),
     new CategoryController(),
-    // new AuthenticationController(),
+    new AuthenticationController(),
     // new ReportController(),
   ]);
 

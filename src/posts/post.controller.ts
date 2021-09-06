@@ -42,13 +42,13 @@ class PostsController {
   }
 
   getAllPosts = async (request: Request, response: Response) => {
-    const posts = await this.postRepository.find();
+    const posts = await this.postRepository.find({ relations: ['categories'] });
     response.send(posts);
   }
 
   getPostById = async (request: Request, response: Response, next: NextFunction) => {
     const { id } = request.params;
-    const post = await this.postRepository.findOne(id);
+    const post = await this.postRepository.findOne(id, { relations: ['categories'] });
 
     if (post) {
       response.send(post);

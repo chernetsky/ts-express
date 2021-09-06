@@ -6,7 +6,7 @@ import Post from '../posts/post.entity';
 @Entity()
 class Category {
   @PrimaryGeneratedColumn()
-  public id?: string
+  public id?: number;
 
   @Column({
     unique: true,
