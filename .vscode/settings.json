@@ -1,1 +1,6 @@
-{}
+{
+  "eslint.codeAction.showDocumentation": {
+    "enable": false
+  },
+  "eslint.format.enable": true
+}

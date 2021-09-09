@@ -1,5 +1,6 @@
-interface DataStoredInToken {
-  _id: string
+interface TokenData {
+  id: string,
+  expiresIn: number
 }
 
-export default DataStoredInToken;
+export default TokenData;

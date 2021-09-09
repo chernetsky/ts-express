@@ -4,13 +4,13 @@ import * as jwt from 'jsonwebtoken';
 import TokenData from 'interfaces/tokenData.interface';
 import DataStoredInToken from 'interfaces/dataStoredInToken.interface';
 import { getRepository } from 'typeorm';
-import UserEmailAlreadyExistsException from '../exceptions/UserEmailAlreadyExistsException';
 import WrongCredentialsException from '../exceptions/WrongCredentialsException';
 import Controller from '../interfaces/controller.interface';
 import validationMiddleware from '../middleware/validation.middleware';
 import LogInDto from './logIn.dto';
 import User from '../users/user.entity';
 import CreateUserDto from '../users/user.dto';
+import AuthenticationService from './authentication.service';
 
 class AuthenticationController implements Controller {
   public path = '/auth';
@@ -18,6 +18,8 @@ class AuthenticationController implements Controller {
   public router = express.Router();
 
   private userRepository = getRepository(User);
+
+  private authenticationService = new AuthenticationService();
 
   constructor() {
     this.initializeRoutes();
@@ -36,22 +38,12 @@ class AuthenticationController implements Controller {
   ) => {
     const userData: CreateUserDto = request.body;
 
-    if (await this.userRepository.findOne({ email: userData.email })) {
-      next(new UserEmailAlreadyExistsException(userData.email));
-    } else {
-      const hashedPassword = await bcrypt.hash(userData.password, 10);
-      const user = await this.userRepository.create({
-        ...userData,
-        password: hashedPassword,
-      });
-
-      await this.userRepository.save(user);
-      user.password = undefined;
-
-      const tokenData = this.createToken(user);
-
-      response.set('Set-Cookie', [this.createCookie(tokenData)]);
+    try {
+      const { cookie, user } = await this.authenticationService.register(userData);
+      response.set('Set-Cookie', [cookie]);
       response.send(user);
+    } catch (error) {
+      next(error);
     }
   }
 
